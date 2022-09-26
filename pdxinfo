@@ -1,0 +1,7 @@
+name=Nic Playdate Sandbox
+author=Nic
+description=Test ground for various stuff
+bundleID=com.NicMagnier.Sandbox
+version=1.0
+buildNumber=100
+imagePath=SystemAssets
