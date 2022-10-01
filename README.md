@@ -18,7 +18,7 @@ toybox update
 Then, if your code is in the `source` folder, just import the following:
 
 ```lua
-import '../toyboxes/sequence.lua'
+import '../toyboxes/toyboxes.lua'
 ```
 
 #### Manually
