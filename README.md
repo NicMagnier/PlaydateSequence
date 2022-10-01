@@ -34,12 +34,12 @@ import 'sequence'
 #### Chain easing functions
 The main idea of sequence.lua is to easily have multiple easing functions play one after the other. To create an animation you simply chain multiple transitions:
 ```lua
-local cool_animation = sequence.new():from(0):to(10, 0.3, "outCirc"):sleep(0.4):to(0, 0.5, "outExpo"):start()
+local cool_animation = Sequence.new():from(0):to(10, 0.3, "outCirc"):sleep(0.4):to(0, 0.5, "outExpo"):start()
 ```
 
 Let's disconstruct this animation:
 
-- `sequence.new()` is creating a new sequence object
+- `Sequence.new()` is creating a new sequence object
 - `:from(0)` is setting the initial value of the animation to 0
 - `:to(10, 0.3, "outCirc")` is telling the value to go to 10 in 0.3 seconds using the easing outCirc
 - `:sleep(0.4)` is telling to keep the value the same for 0.4 seconds
@@ -49,10 +49,10 @@ Let's disconstruct this animation:
 You can also add `:loop()` so that the animation will loop indefinitely or `:mirror()` to loop the animation back and forth.
 
 #### Update Loop
-For the animation to be updated properly, you need also to call `sequence.update()` in your update function
+For the animation to be updated properly, you need also to call `Sequence.update()` in your update function
 ```lua
 function playdate.update()
-	sequence.update()
+	Sequence.update()
   
   -- Your code ...
 end
@@ -70,7 +70,7 @@ You don't have to call `:start()` when you declare the animation. You can just s
 If you want to play a sound at specific points in the animation (or trigger other effects or gameplay feature) you can use `:callback()` in your sequence.
 
 ```lua
-sequence.new():from(0):to(69, 4.2, "flat"):callback(function() print("Noice") end)
+Sequence.new():from(0):to(69, 4.2, "flat"):callback(function() print("Noice") end)
 ```
 
 #### Best practice

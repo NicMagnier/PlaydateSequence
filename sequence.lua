@@ -2,24 +2,24 @@
 class to create simple animations using easing as building blocks
 
 To create a simple sequence:
-	animation = sequence.new():from(0):to(1,2.0,"outQuad"):mirror():start()
+	animation = Sequence.new():from(0):to(1,2.0,"outQuad"):mirror():start()
 
 In your game loop
-	sequence.update()
+	Sequence.update()
 	currentValue = animation:get()
 
 Add hooks or callback
-	animation = sequence.new():from(0):to(1,2.0,"outQuad"):callback(function() print("end animation") end):mirror()
+	animation = Sequence.new():from(0):to(1,2.0,"outQuad"):callback(function() print("end animation") end):mirror()
 ]]--
 import 'CoreLibs/easing'
 
-sequence = {}
-sequence.__index = sequence
+Sequence = {}
+Sequence.__index = Sequence
 
 -- private member
 local _easings = playdate.easingFunctions
 if not _easings then
-	print("sequence warning: easing function not found. Don't forget to call import 'CoreLibs/easing'")
+	print("Sequence warning: easing function not found. Don't forget to call import 'CoreLibs/easing'")
 	return
 end
 
@@ -28,7 +28,7 @@ local _previousUpdateTime = playdate.getCurrentTimeMilliseconds()
 
 -- create a new sequence
 
-function sequence.new()
+function Sequence.new()
 	local new_sequence = {
 		-- runtime values
 		time = 0,
@@ -44,11 +44,11 @@ function sequence.new()
 		callbacks = nil,
 	}
 
-	return setmetatable(new_sequence, sequence)
+	return setmetatable(new_sequence, Sequence)
 end
 
 -- put a low pacing to slow down all animations, great for tweaking
-function sequence.update( pacing )
+function Sequence.update( pacing )
 	pacing = pacing or 1
 
 	local currentTime = playdate.getCurrentTimeMilliseconds()
@@ -70,14 +70,14 @@ function sequence.update( pacing )
 	end
 end
 
-function sequence.print()
+function Sequence.print()
 	print("Sequences running:", #_runningSequences)
 	for index, seq in pairs(_runningSequences) do
 		print(" Sequence", index, seq)
 	end
 end
 
-function sequence:clear()
+function Sequence:clear()
 	self:stop()
 	self.time = 0
 	self.duration = 0
@@ -90,7 +90,7 @@ function sequence:clear()
 end
 
 -- Reinitialize the sequence
-function sequence:from( from )
+function Sequence:from( from )
 	from = from or 0
 
 	-- release all easings
@@ -107,7 +107,7 @@ function sequence:from( from )
 	return self
 end
 
-function sequence:to( to, duration, easingFunction, ... )
+function Sequence:to( to, duration, easingFunction, ... )
 	if not self then return end
 
 	-- default parameters
@@ -135,7 +135,7 @@ function sequence:to( to, duration, easingFunction, ... )
 	return self
 end
 
-function sequence:set( value )
+function Sequence:set( value )
 	if not self then return end
 
 	local lastEasing = self.easings[self.easingCount]
@@ -153,7 +153,7 @@ end
 
 -- @repeatCount: number of times the last easing as to be duplicated
 -- @mirror: bool, does the repeating easings have to be mirrored (yoyo effect)
-function sequence:again( repeatCount, mirror )
+function Sequence:again( repeatCount, mirror )
 	if not self then return end
 	
 	repeatCount = repeatCount or 1
@@ -186,7 +186,7 @@ function sequence:again( repeatCount, mirror )
 	return self
 end
 
-function sequence:sleep( duration )
+function Sequence:sleep( duration )
 	if not self then return end
 
 	duration = duration or 0
@@ -210,7 +210,7 @@ function sequence:sleep( duration )
 	return self
 end
 
-function sequence:callback( fn, timeOffset )
+function Sequence:callback( fn, timeOffset )
 	if not self then return end
 
 	timeOffset = timeOffset or 0
@@ -224,22 +224,22 @@ function sequence:callback( fn, timeOffset )
 	return self
 end
 
-function sequence:loop()
+function Sequence:loop()
 	self.loopType = "loop"
 	return self
 end
 
-function sequence:mirror()
+function Sequence:mirror()
 	self.loopType = "mirror"
 	return self
 end
 
-function sequence:newEasing()
+function Sequence:newEasing()
 	self.easingCount = self.easingCount + 1
 	return self:getEasingByIndex(self.easingCount)
 end
 
-function sequence:newCallback()
+function Sequence:newCallback()
 	local newCallback = {
 		fn = nil,
 		timestamp = nil,
@@ -248,7 +248,7 @@ function sequence:newCallback()
 	return newCallback
 end
 
-function sequence:getEasingByIndex( index )
+function Sequence:getEasingByIndex( index )
 
 	local easing = self.easings[index]
 	if type(easing)=="table" then
@@ -271,7 +271,7 @@ function sequence:getEasingByIndex( index )
 	return new_easing
 end
 
-function sequence:getEasingByTime( clampedTime )
+function Sequence:getEasingByTime( clampedTime )
 	if self:isEmpty() then
 		print("sequence warning: empty animation")
 		return nil
@@ -297,7 +297,7 @@ function sequence:getEasingByTime( clampedTime )
 	return self.easings[1]
 end
 
-function sequence:get( time )
+function Sequence:get( time )
 	if not self then return nil end
 
 	if self:isEmpty() then
@@ -323,7 +323,7 @@ function sequence:get( time )
 	return result
 end
 
-function sequence:updateCallbacks( dt )
+function Sequence:updateCallbacks( dt )
 	if #self.callbacks==0 then
 		return
 	end
@@ -381,7 +381,7 @@ end
 
 -- get the time clamped in the sequence duration
 -- manage time using loop setting
-function sequence:getClampedTime( time )
+function Sequence:getClampedTime( time )
 	time = time or self.time
 
 	local isForward = true
@@ -405,7 +405,7 @@ function sequence:getClampedTime( time )
 	return math.clamp(time, 0, self.duration), isForward
 end
 
-function sequence:addRunning()
+function Sequence:addRunning()
 	if self:isEmpty() or self.isRunning then
 		return
 	end
@@ -414,7 +414,7 @@ function sequence:addRunning()
 	self.isRunning = true
 end
 
-function sequence:removeRunning()
+function Sequence:removeRunning()
 	local indexInRunningTable = table.indexOfElement(_runningSequences, self)
 	if indexInRunningTable then
 		table.remove(_runningSequences, indexInRunningTable)
@@ -422,12 +422,12 @@ function sequence:removeRunning()
 	self.isRunning = false
 end
 
-function sequence:start()
+function Sequence:start()
 	self:addRunning()
 	return self
 end
 
-function sequence:stop()
+function Sequence:stop()
 	self:removeRunning()
 	self.time = 0
 	self.cachedResultTimestamp = nil
@@ -435,12 +435,12 @@ function sequence:stop()
 	return self
 end
 
-function sequence:pause()
+function Sequence:pause()
 	self:removeRunning()
 	return self
 end
 
-function sequence:restart()
+function Sequence:restart()
 	self.time = 0
 	self.cachedResultTimestamp = nil
 	self.previousUpdateEasingIndex = nil
@@ -448,11 +448,11 @@ function sequence:restart()
 	return self
 end
 
-function sequence:isDone()
+function Sequence:isDone()
     return self.time>=self.duration and (not self.loopType)
 end
 
-function sequence:isEmpty()
+function Sequence:isEmpty()
     return self.easingCount==0
 end
 
