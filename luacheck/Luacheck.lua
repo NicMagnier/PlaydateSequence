@@ -1,4 +1,4 @@
--- Globals provided by LDtkImporter.
+-- Globals provided by Sequence.
 --
 -- This file can be used by toyboypy (https://toyboxpy.io) to import into a project's luacheck config.
 --
