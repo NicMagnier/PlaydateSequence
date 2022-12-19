@@ -11,7 +11,7 @@ Create animations with simple sequences of easing functions in your playdate gam
 You can add it to your **Playdate** project by installing [**toybox.py**](https://toyboxpy.io), going to your project folder in a Terminal window and typing:
 
 ```console
-toybox add NicMagnier/PlaydateSequence
+toybox add Sequence
 toybox update
 ```
 
