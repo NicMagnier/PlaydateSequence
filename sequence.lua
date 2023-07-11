@@ -112,7 +112,7 @@ function sequence:to( to, duration, easingFunction, ... )
 
 	-- default parameters
 	to = to or 0
-	duration = duration or 0
+	duration = duration or 0.3
 	easingFunction = easingFunction or _easings.inOutQuad
 	if type(easingFunction)=="string" then
 		easingFunction = _easings[easingFunction] or _easings.inOutQuad
@@ -189,7 +189,7 @@ end
 function sequence:sleep( duration )
 	if not self then return end
 
-	duration = duration or 0
+	duration = duration or 0.5
 	if duration==0 then
 		return self
 	end
