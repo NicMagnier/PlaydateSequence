@@ -76,9 +76,17 @@ function sequence.update( pacing )
 end
 
 function sequence.print()
-	print("Sequences running:", #_runningSequences)
+	local count = 0
 	for index, seq in pairs(_runningSequences) do
-		print(" Sequence", index, seq)
+		if seq.isRunning then
+			count = count + 1
+		end
+	end
+	print("Sequences running:", count)
+	for index, seq in pairs(_runningSequences) do
+		if seq.isRunning then
+			print(" Sequence", index, seq)
+		end
 	end
 end
 
