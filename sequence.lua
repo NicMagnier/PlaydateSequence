@@ -349,10 +349,11 @@ function sequence:updateCallbacks( dt )
 		end
 
 		for index, cbObject in pairs(self.callbacks) do
-			if cbObject.timestamp>=clampedStart and cbObject.timestamp<=clampedEnd then
-				if type(cbObject.fn)=="function" then
-					cbObject.fn()
-				end
+			if cbObject.timestamp==clampedStart and clampedStart==0 or
+			   	cbObject.timestamp>clampedStart and cbObject.timestamp<=clampedEnd then
+					if type(cbObject.fn)=="function" then
+						cbObject.fn()
+					end
 			end
 		end
 	end
