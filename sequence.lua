@@ -52,7 +52,7 @@ function sequence.update( pacing )
 	pacing = pacing or 1
 
 	local currentTime = playdate.getCurrentTimeMilliseconds()
-	local deltaTime = ((currentTime-_previousUpdateTime) / 1000) * pacing
+	local deltaTime = (currentTime-_previousUpdateTime) * pacing
 	_previousUpdateTime = currentTime
 
 	for index = #_runningSequences, 1, -1 do
@@ -126,6 +126,7 @@ function sequence:to( to, duration, easingFunction, ... )
 	-- default parameters
 	to = to or 0
 	duration = duration or 0.3
+	duration = math.floor(1000*duration)
 	easingFunction = easingFunction or _easings.inOutQuad
 	if type(easingFunction)=="string" then
 		easingFunction = _easings[easingFunction] or _easings.inOutQuad
@@ -203,6 +204,7 @@ function sequence:sleep( duration )
 	if not self then return end
 
 	duration = duration or 0.5
+	duration = math.floor(1000*duration)
 	if duration==0 then
 		return self
 	end
@@ -227,6 +229,7 @@ function sequence:callback( fn, timeOffset )
 	if not self then return end
 
 	timeOffset = timeOffset or 0
+	timeOffset = math.floor(1000*timeOffset)
 
 	local lastEasing = self.easings[self.easingCount]
 
@@ -317,7 +320,11 @@ function sequence:get( time )
 		return 0
 	end
 
-	time = time or self.time
+	if time == nil then
+		time = self.time
+	else
+		time = math.floor(1000*time)
+	end
 
 	-- try to get cached result
 	if self.cachedResultTimestamp==time then
