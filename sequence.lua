@@ -52,28 +52,41 @@ function sequence.update( pacing )
 	pacing = pacing or 1
 
 	local currentTime = playdate.getCurrentTimeMilliseconds()
-	local deltaTime = ((currentTime-_previousUpdateTime) / 1000) * pacing
+	local deltaTime = (currentTime-_previousUpdateTime) * pacing
 	_previousUpdateTime = currentTime
 
 	for index = #_runningSequences, 1, -1 do
 		local seq = _runningSequences[index]
 
-		seq:updateCallbacks( deltaTime )
+		if seq.isRunning == true then
+			seq.time = seq.time + deltaTime
+			seq.cachedResultTimestamp = nil
+			
+			seq:updateCallbacks( deltaTime )
 
-		seq.time = seq.time + deltaTime
-		seq.cachedResultTimestamp = nil
+			if seq:isDone() then
+				seq.isRunning = false
+			end
+		end
 
-		if seq:isDone() then
+		if seq.isRunning == false then
 			table.remove(_runningSequences, index)
-			seq.isRunning = false
 		end
 	end
 end
 
 function sequence.print()
-	print("Sequences running:", #_runningSequences)
+	local count = 0
 	for index, seq in pairs(_runningSequences) do
-		print(" Sequence", index, seq)
+		if seq.isRunning then
+			count = count + 1
+		end
+	end
+	print("Sequences running:", count)
+	for index, seq in pairs(_runningSequences) do
+		if seq.isRunning then
+			print(" Sequence", index, seq)
+		end
 	end
 end
 
@@ -113,6 +126,7 @@ function sequence:to( to, duration, easingFunction, ... )
 	-- default parameters
 	to = to or 0
 	duration = duration or 0.3
+	duration = math.floor(1000*duration)
 	easingFunction = easingFunction or _easings.inOutQuad
 	if type(easingFunction)=="string" then
 		easingFunction = _easings[easingFunction] or _easings.inOutQuad
@@ -190,6 +204,7 @@ function sequence:sleep( duration )
 	if not self then return end
 
 	duration = duration or 0.5
+	duration = math.floor(1000*duration)
 	if duration==0 then
 		return self
 	end
@@ -214,6 +229,7 @@ function sequence:callback( fn, timeOffset )
 	if not self then return end
 
 	timeOffset = timeOffset or 0
+	timeOffset = math.floor(1000*timeOffset)
 
 	local lastEasing = self.easings[self.easingCount]
 
@@ -304,7 +320,11 @@ function sequence:get( time )
 		return 0
 	end
 
-	time = time or self.time
+	if time == nil then
+		time = self.time
+	else
+		time = math.floor(1000*time)
+	end
 
 	-- try to get cached result
 	if self.cachedResultTimestamp==time then
@@ -328,23 +348,26 @@ function sequence:updateCallbacks( dt )
 		return
 	end
 
+	local previousTime = self.time - dt
+	
 	local callTimeRange = function( clampedStart, clampedEnd)
 		if clampedStart>clampedEnd then
 			clampedStart, clampedEnd = clampedEnd, clampedStart
 		end
 
 		for index, cbObject in pairs(self.callbacks) do
-			if cbObject.timestamp>=clampedStart and cbObject.timestamp<=clampedEnd then
-				if type(cbObject.fn)=="function" then
-					cbObject.fn()
-				end
+			if cbObject.timestamp==clampedStart and clampedStart==0 or
+			   	cbObject.timestamp>clampedStart and cbObject.timestamp<=clampedEnd then
+					if type(cbObject.fn)=="function" then
+						cbObject.fn()
+					end
 			end
 		end
 	end
 
 	-- most straightforward case: no loop
 	if not self.loopType then
-		local clampedTime = self:getClampedTime( self.time )
+		local clampedTime = self:getClampedTime( previousTime )
 		callTimeRange(clampedTime, clampedTime+dt)
 		return
 	end
@@ -357,7 +380,7 @@ function sequence:updateCallbacks( dt )
 		callTimeRange(0, self.duration)
 	end
 
-	local clampedTime, isForward = self:getClampedTime( self.time )
+	local clampedTime, isForward = self:getClampedTime( previousTime )
 	local endTime = clampedTime
 	if isForward then
 		endTime = endTime + dt
@@ -415,10 +438,6 @@ function sequence:addRunning()
 end
 
 function sequence:removeRunning()
-	local indexInRunningTable = table.indexOfElement(_runningSequences, self)
-	if indexInRunningTable then
-		table.remove(_runningSequences, indexInRunningTable)
-	end
 	self.isRunning = false
 end
 
