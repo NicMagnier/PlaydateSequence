@@ -278,16 +278,27 @@ function sequence:getEasingByTime( clampedTime )
 	end
 
 	local easingIndex = self.previousUpdateEasingIndex or 1
+	local foundEasing = false
 
 	while easingIndex>=1 and easingIndex<=self.easingCount do
 		local easing = self.easings[easingIndex]
 
 		if clampedTime < easing.timestamp then
 			easingIndex = easingIndex - 1
-		elseif clampedTime == (easing.timestamp+easing.duration) and easingIndex < self.easingCount or
-			clampedTime > (easing.timestamp+easing.duration) then
+		elseif clampedTime > (easing.timestamp+easing.duration) then
+			easingIndex = easingIndex + 1
+		elseif clampedTime == (easing.timestamp+easing.duration) then
+			-- if the time is in between two easings, we prioritize the highest index (if it exists)
+			if self.easings[easingIndex + 1] then
 				easingIndex = easingIndex + 1
+			else
+				foundEasing = true
+			end
 		else
+			foundEasing = true
+		end
+
+		if foundEasing then
 			self.previousUpdateEasingIndex = easingIndex
 			return easing, easingIndex
 		end
