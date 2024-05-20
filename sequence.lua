@@ -278,6 +278,7 @@ function sequence:getEasingByTime( clampedTime )
 	end
 
 	local easingIndex = self.previousUpdateEasingIndex or 1
+	local foundEasing = false
 
 	while easingIndex>=1 and easingIndex<=self.easingCount do
 		local easing = self.easings[easingIndex]
@@ -286,7 +287,18 @@ function sequence:getEasingByTime( clampedTime )
 			easingIndex = easingIndex - 1
 		elseif clampedTime > (easing.timestamp+easing.duration) then
 			easingIndex = easingIndex + 1
+		elseif clampedTime == (easing.timestamp+easing.duration) then
+			-- if the time is in between two easings, we prioritize the highest index (if it exists)
+			if self.easings[easingIndex + 1] then
+				easingIndex = easingIndex + 1
+			else
+				foundEasing = true
+			end
 		else
+			foundEasing = true
+		end
+
+		if foundEasing then
 			self.previousUpdateEasingIndex = easingIndex
 			return easing, easingIndex
 		end
@@ -314,7 +326,12 @@ function sequence:get( time )
 	-- we calculate and cache the result
 	local clampedTime = self:getClampedTime(time)
 	local easing = self:getEasingByTime(clampedTime)
-	local result = easing.fn(clampedTime-easing.timestamp, easing.from, easing.to-easing.from, easing.duration, table.unpack(easing.params or {}))
+	local result
+	if easing.duration == 0 then
+		result = easing.to
+	else
+		result = easing.fn(clampedTime-easing.timestamp, easing.from, easing.to-easing.from, easing.duration, table.unpack(easing.params or {}))
+	end
 
 	-- cache
 	self.cachedResultTimestamp = clampedTime
